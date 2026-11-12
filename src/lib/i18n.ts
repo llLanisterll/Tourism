@@ -40,7 +40,8 @@ export const translations = {
 			signIn: 'Masuk',
 			signOut: 'Keluar',
 			getStarted: 'Mulai Sekarang',
-			admin: 'Admin'
+			admin: 'Admin',
+			backToDashboard: 'Kembali ke Dashboard'
 		},
 		footer: {
 			tagline: 'Rekomendasi tempat wisata & kuliner terbaik, dinilai berdasarkan apa yang benar-benar Anda inginkan.',
@@ -361,7 +362,8 @@ export const translations = {
 			signIn: 'Sign in',
 			signOut: 'Sign out',
 			getStarted: 'Get started',
-			admin: 'Admin'
+			admin: 'Admin',
+			backToDashboard: 'Back to Dashboard'
 		},
 		footer: {
 			tagline: 'Travel and culinary picks, scored on what you actually care about.',

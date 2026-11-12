@@ -166,7 +166,7 @@
 			await supabase.auth.signOut();
 		} catch {}
 		userStore.logout();
-		goto('/login');
+		await goto('/login', { invalidateAll: true });
 	}
 
 	function initials(name: string) {

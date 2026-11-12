@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
-  import { Compass, LogOut, Menu, X } from "lucide-svelte";
+  import { ArrowLeft, Compass, LogOut, Menu, X } from "lucide-svelte";
   import LangSwitcher from "$components/LangSwitcher.svelte";
   import { userStore } from "$lib/userStore";
   import { t } from "$lib/i18n";
@@ -12,8 +12,11 @@
   let scrolled = false;
   let isHome = false;
   let mobileMenuOpen = false;
+  let loggedOut = false;
 
-  $: activeUser = $userStore || user;
+  $: if ($userStore) loggedOut = false;
+  $: activeUser = loggedOut ? null : $userStore || user;
+  $: isAdminUser = activeUser?.role === "admin";
   $: isHome = $page.url.pathname === "/" || $page.url.pathname === "/home";
 
   // Track scroll on the client
@@ -36,13 +39,14 @@
   $: clear = isHome && !scrolled && !mobileMenuOpen;
 
   async function logout() {
+    loggedOut = true;
     try {
       const { supabase } = await import("$lib/supabaseClient");
       await supabase.auth.signOut();
     } catch {}
     userStore.logout();
     mobileMenuOpen = false;
-    goto("/");
+    await goto("/", { invalidateAll: true });
   }
 </script>
 
@@ -62,56 +66,48 @@
     </a>
 
     <!-- Desktop nav -->
-    <nav class="hidden items-center gap-8 md:flex">
+    <nav class="hidden items-center gap-5 md:flex lg:gap-8">
       {#if activeUser}
         <a
           href="/home"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/home" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/home" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.home}
         </a>
         <a
           href="/find"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/find" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/find" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.preferences}
         </a>
         <a
           href="/results"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/results" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/results" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.explore}
         </a>
         <a
           href="/wishlist"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/wishlist" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/wishlist" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.wishlist}
         </a>
-        {#if activeUser.role === "admin"}
-          <a
-            href="/admin"
-            class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname.startsWith("/admin") ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
-          >
-            {$t.nav.admin}
-          </a>
-        {/if}
       {:else}
         <a
           href="/#how"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"}`}
         >
           {$t.nav.howItWorks}
         </a>
         <a
           href="/find"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/find" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/find" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.preferences}
         </a>
         <a
           href="/results"
-          class={`text-base font-semibold transition ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/results" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
+          class={`text-sm font-semibold transition lg:text-base ${clear ? "text-white/85 hover:text-white" : "text-slate-600 hover:text-brand"} ${$page.url.pathname === "/results" ? (clear ? "!text-white font-bold" : "!text-brand font-bold") : ""}`}
         >
           {$t.nav.explore}
         </a>
@@ -119,12 +115,28 @@
     </nav>
 
     <!-- Right actions -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      {#if isAdminUser}
+        <a
+          href="/admin"
+          class={`hidden h-9 items-center gap-1.5 border px-3.5 text-xs font-bold transition sm:inline-flex ${
+            clear
+              ? "border-white bg-white text-ink hover:border-brand hover:bg-brand hover:text-white"
+              : "border-forest bg-forest text-emerald-300 hover:border-brand hover:bg-brand hover:text-white"
+          }`}
+        >
+          <ArrowLeft size={14} />
+          <span>{$t.nav.backToDashboard}</span>
+        </a>
+      {/if}
+
       <LangSwitcher {clear} />
 
       {#if activeUser}
         <span
-          class="mono text-xs hidden max-w-[130px] truncate sm:inline font-bold"
+          class={`mono text-xs hidden max-w-[130px] truncate font-bold ${
+            isAdminUser ? "xl:inline" : "sm:inline"
+          }`}
           >{activeUser.name}</span
         >
         <button
@@ -192,12 +204,14 @@
             class="text-base font-semibold py-1.5 hover:text-brand"
             >{$t.nav.wishlist}</a
           >
-          {#if activeUser.role === "admin"}
+          {#if isAdminUser}
             <a
               href="/admin"
-              class="text-base font-bold py-1.5 text-emerald-deep"
-              >{$t.nav.admin}</a
+              class="mt-1 flex items-center justify-center gap-2 bg-forest py-3 text-center text-sm font-bold text-emerald-300 shadow-sm transition hover:bg-brand hover:text-white"
             >
+              <ArrowLeft size={16} />
+              {$t.nav.backToDashboard}
+            </a>
           {/if}
           <button
             type="button"
@@ -234,3 +248,13 @@
     </div>
   {/if}
 </header>
+
+{#if isAdminUser && !mobileMenuOpen && $page.url.pathname !== "/login"}
+  <a
+    href="/admin"
+    class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 border border-emerald-300/30 bg-forest px-4 py-3 text-xs font-bold text-emerald-300 shadow-xl transition hover:bg-brand hover:text-white sm:hidden"
+  >
+    <ArrowLeft size={15} />
+    <span>{$t.nav.backToDashboard}</span>
+  </a>
+{/if}

@@ -16,7 +16,7 @@
 </script>
 
 {#if !isAdmin}
-	<Navbar />
+	<Navbar user={data.user} />
 {/if}
 
 <slot />
